@@ -4,7 +4,11 @@ import sys
 
 app = Flask(__name__)
 
-@app.route("/run", methods=["POST"])
+@app.route("/test-post", methods=["POST"])
+def test_post():
+    return {"status": "post received"}
+
+@app.route("/run", methods=["POST", "GET"])
 def run_script():
     try:
         result = subprocess.run(
