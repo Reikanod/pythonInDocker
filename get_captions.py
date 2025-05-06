@@ -13,6 +13,7 @@ def fetch_auto_captions(video_url):
                 "--write-auto-sub",
                 "--sub-format", "json3",
                 "-o", "/dev/null",
+                "--cookies", "cookies.txt",
                 video_url
             ],
             stdout=subprocess.PIPE,
