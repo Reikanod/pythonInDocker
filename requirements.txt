@@ -1,5 +1,4 @@
 RunwayML
-requests
 flask
 gunicorn
 yt-dlp
