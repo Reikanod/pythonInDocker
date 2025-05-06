@@ -17,5 +17,10 @@ def run_script():
     except subprocess.CalledProcessError as e:
         return {"status": "error", "output": e.stderr}, 500
 
+@app.route("/check")
+def check():
+    return {"status": "alive"}
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
