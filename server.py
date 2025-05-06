@@ -20,6 +20,7 @@ def get_captions():
     try:
         if not request.is_json:
             return {"error": "Request must have 'Content-Type: application/json'"}, 400
+        return {"status": "valid JSON"}
 
         data = request.get_json()
         video_url = data.get("video_url")
