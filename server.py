@@ -15,7 +15,7 @@ def check():
     return {"status": "alive"}
 
 
-@app.route("/get_captions", methods=["POST"])
+@app.route("/get_captions", methods=["POST", "GET"])
 def get_captions():
     try:
         if not request.is_json:
