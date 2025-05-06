@@ -15,6 +15,7 @@ def check():
     return {"status": "alive"}
 
 @app.route("/get_captions", methods=["POST"])
+@app.route("/get_captions", methods=["POST"])
 def get_captions():
     logging.info("Received POST request to /get_captions")
     data = request.json or {}
