@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, request
 import subprocess
 import sys
+import json
 
 app = Flask(__name__)
 
