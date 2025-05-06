@@ -12,7 +12,29 @@ app = Flask(__name__)
 @app.route("/check")
 def check():
     logging.info("Received /check request")
-    return {"status": "alive"}
+
+@app.route("/test-run", methods=["POST"])
+def test_run():
+    video_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    try:
+        result = subprocess.run(
+            [sys.executable, "get_captions.py", video_url],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        logging.info(f"Raw output from script: {result.stdout}")
+        return {
+            "stdout": result.stdout,
+            "stderr": result.stderr
+        }
+    except subprocess.CalledProcessError as e:
+        return {
+            "error": "Script failed",
+            "stdout": e.stdout,
+            "stderr": e.stderr
+        }, 500
+
 
 
 @app.route("/get_captions", methods=["POST", "GET"])
