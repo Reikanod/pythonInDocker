@@ -5,7 +5,8 @@ import sys
 app = Flask(__name__)
 
 # Запустить get_captions.py - получает субтитры из ютуб видео. Ссылку на видео получает в json виде от n8n
-@app.route("/get_captions", methods=["POST", "GET"])
+@app.route("/get_captions", methods=["POST"])
+@app.route("/get_captions/", methods=["POST"])
 def get_captions():
     data = request.json or {}
 
