@@ -15,35 +15,38 @@ def check():
     return {"status": "alive"}
 
 
-@app.route("/get_captions", methods=["POST", "GET"])
+@app.route("/get_captions", methods=["POST"])
 def get_captions():
-    logging.info("Received POST request to /get_captions")
-    data = request.json or {}
-    video_url = data.get("video_url")
-    if not video_url:
-        logging.error("Missing 'video_url' in request")
-        return {"error": "Missing 'video_url' in request"}, 400
-
     try:
-        result = subprocess.run(
-            [sys.executable, "get_captions.py", video_url],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        logging.info(f"Captions fetched successfully: {result.stdout}")
-        return json.loads(result.stdout)
-    except subprocess.CalledProcessError as e:
-        logging.error(f"Error fetching captions: {e.stderr}")
+        if not request.is_json:
+            return {"error": "Request must have 'Content-Type: application/json'"}, 400
+
+        data = request.get_json()
+        video_url = data.get("video_url")
+        if not video_url:
+            return {"error": "Missing 'video_url' in request"}, 400
+
+        logging.info(f"Received video_url: {video_url}")
+
         try:
-            error_data = json.loads(e.stdout)
-            return error_data, 500
-        except Exception:
-            return {
-                "status": "error",
-                "stdout": e.stdout,
-                "stderr": e.stderr
-            }, 500
+            result = subprocess.run(
+                [sys.executable, "get_captions.py", video_url],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            logging.info(f"Captions fetched successfully: {result.stdout}")
+            return json.loads(result.stdout)
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Error fetching captions: {e.stderr}")
+            return {"status": "error", "stderr": e.stderr}, 500
+
+    except Exception as e:
+        logging.error(f"Error processing request: {str(e)}")
+        return {"error": "Invalid JSON request"}, 400
+
+
+
 
 @app.route("/run", methods=["POST", "GET"])
 def run_script():
