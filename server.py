@@ -13,7 +13,7 @@ app = Flask(__name__)
 def check():
     logging.info("Received /check request")
 
-@app.route("/test-run", methods=["POST"])
+@app.route("/test-run", methods=["POST", "GET"])
 def test_run():
     video_url = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     try:
