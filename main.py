@@ -8,7 +8,7 @@ def read_root():
     return {"message": "Server is running"}
 
 
-@app.post("/get_news/")
+@app.post("/get_news")
 async def get_news(request: Request):
     data = await request.json()
 
