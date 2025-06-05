@@ -19,6 +19,9 @@ async def show_res(api_id, api_hash):
 
     # Пример: получение собственного username
     me = await client.get_me()
-    raise Exception(f"Вы вошли как {me.username}")
-
-    return client
+    return {
+        "id": me.id,
+        "username": me.username,
+        "first_name": me.first_name,
+        "last_name": me.last_name or ""
+    }
