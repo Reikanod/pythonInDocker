@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
-import subprocess
 import json
+from parser import *
 
 app = FastAPI()
 
@@ -24,19 +24,5 @@ async def get_news(request: Request):
     })
 
  # Вызов parser.py
-    try:
-        result = subprocess.run(
-            ["python", "parser.py", input_data],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        output = result.stdout
-    except subprocess.CalledProcessError as e:
-        return {"error": "Parser failed", "details": e.stderr}
-
-    return {
-        "status": "Parser executed",
-        "output": output.strip()
-    }
+    return show_res(api_id, api_hash, password)
 
