@@ -15,14 +15,12 @@ async def get_news(request: Request):
 
     api_id = data.get("api_id")
     api_hash = data.get("api_hash")
-    password = data.get("Password")
-    
+
     input_data = json.dumps({
         "api_id": api_id,
-        "api_hash": api_hash,
-        "password": password
+        "api_hash": api_hash
     })
 
  # Вызов parser.py
-    return show_res(api_id, api_hash, password)
+    return show_res(api_id, api_hash)
 
