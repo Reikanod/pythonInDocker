@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 import json
 from parser import *
+import os
 
 app = FastAPI()
 
@@ -8,6 +9,9 @@ app = FastAPI()
 def read_root():
     return {"message": "Server is running"}
 
+@app.get("/files")
+def list_files():
+    return {"files": os.listdir()}
 
 @app.post("/get_news")
 async def get_news(request: Request):
