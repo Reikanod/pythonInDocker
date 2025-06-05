@@ -5,6 +5,7 @@ from telethon.sync import TelegramClient
 from telethon.tl.functions.messages import GetHistoryRequest
 from datetime import datetime
 
+
 # Получение аргумента и распаковка
 def load_credentials_from_args():
     try:
@@ -15,12 +16,8 @@ def load_credentials_from_args():
         print(f"[ERROR] Ошибка загрузки аргументов: {e}")
         sys.exit(1)
 
-api_id, api_hash, password = load_credentials_from_args()
 
-# (опционально) Проверка пароля
-if password != "твой_секретный_пароль":  # Заменить на реальный
-    print("[ERROR] Неверный пароль")
-    sys.exit(1)
+api_id, api_hash, password = load_credentials_from_args()
 
 # Список каналов
 channels = [
@@ -29,6 +26,7 @@ channels = [
 
 # Создание клиента
 client = TelegramClient("session", api_id, api_hash, system_version='4.16.30-vxCUSTOM')
+
 
 # Парсинг постов
 def fetch_posts(channel_name, last_date=None, limit=100):
@@ -69,15 +67,18 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "parser_data")
 os.makedirs(DATA_DIR, exist_ok=True)
 LAST_DATE_FILE = os.path.join(DATA_DIR, "last_parsed_date.txt")
 
+
 def load_last_date():
     if os.path.exists(LAST_DATE_FILE):
         with open(LAST_DATE_FILE, "r") as f:
             return datetime.strptime(f.read().strip(), "%Y-%m-%d %H:%M:%S")
     return None
 
+
 def save_last_date(date):
     with open(LAST_DATE_FILE, "w") as f:
         f.write(date.strftime("%Y-%m-%d %H:%M:%S"))
+
 
 # Основной блок
 client.start()
