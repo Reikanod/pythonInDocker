@@ -6,7 +6,7 @@ from telethon.sync import TelegramClient
 from telethon.tl.functions.messages import GetHistoryRequest
 from datetime import datetime
 
-def show_res(api_id, api_hash):
+async def show_res(api_id, api_hash):
     # Проверяем, существует ли файл сессии
     if not os.path.exists("session.session"):
         raise Exception("Файл сессии session.session не найден!")
@@ -15,10 +15,10 @@ def show_res(api_id, api_hash):
     client = TelegramClient("session", api_id, api_hash, system_version='4.16.30-vxCUSTOM')
 
     # Запускаем клиент
-    client.start()  # если аккаунт с двухфакторной аутентификацией
+    await client.start()  # если аккаунт с двухфакторной аутентификацией
 
     # Пример: получение собственного username
-    me = client.get_me()
+    me = await client.get_me()
     raise Exception(f"Вы вошли как {me.username}")
 
     return client
