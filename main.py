@@ -15,6 +15,7 @@ async def get_news(request: Request):
     api_id = data.get("api_id")
     api_hash = data.get("api_hash")
     password = data.get("Password")
+    print(data)
 
     # Здесь пока просто выводим в ответ то, что пришло
     return {
