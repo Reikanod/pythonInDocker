@@ -7,7 +7,7 @@ app = FastAPI()
 def read_root():
     return {"message": "Server is running"}
 
-
+'''
 @app.post("/get_news")
 async def get_news(request: Request):
     data = await request.json()
@@ -23,3 +23,9 @@ async def get_news(request: Request):
         "password": password
     }
 
+'''
+
+@app.post("/get_news")
+async def get_news(request: Request):
+    body = await request.body()  # ← покажет всё "сырое" тело
+    return {"raw_body": body.decode("utf-8")}
