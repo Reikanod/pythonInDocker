@@ -6,7 +6,7 @@ from telethon.sync import TelegramClient
 from telethon.tl.functions.messages import GetHistoryRequest
 from datetime import datetime
 
-async def show_res(api_id, api_hash):
+async def parse_news(api_id, api_hash):
     # Проверяем, существует ли файл сессии
     if not os.path.exists("session.session"):
         raise Exception("Файл сессии session.session не найден!")
@@ -15,13 +15,16 @@ async def show_res(api_id, api_hash):
     client = TelegramClient("session", api_id, api_hash, system_version='4.16.30-vxCUSTOM')
 
     # Запускаем клиент
-    await client.start()  # если аккаунт с двухфакторной аутентификацией
+    await client.start()
 
-    # Пример: получение собственного username
-    me = await client.get_me()
-    return {
-        "id": me.id,
-        "username": me.username,
-        "first_name": me.first_name,
-        "last_name": me.last_name or ""
-    }
+    # Каналы для парсинга
+    channels = ['spletnicca', 'skosoi']
+
+    # Парсинг
+    for channel in channels:
+        try:
+            entity = await client.get_entity(channel)
+            async for message in client.iter_messages(entity, limit=5):  # последние 5 постов
+                print(f"Канал: {channel}, Текст: {message.text}\n{'-'*40}")
+        except Exception as e:
+            print(f"Ошибка при парсинге канала {channel}: {e}")

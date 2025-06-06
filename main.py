@@ -26,5 +26,5 @@ async def get_news(request: Request):
     })
 
  # Вызов parser.py
-    return await show_res(api_id, api_hash)
+    return await parse_news(api_id, api_hash)
 
