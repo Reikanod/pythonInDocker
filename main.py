@@ -19,12 +19,8 @@ async def get_news(request: Request):
 
     api_id = data.get("api_id")
     api_hash = data.get("api_hash")
-
-    input_data = json.dumps({
-        "api_id": api_id,
-        "api_hash": api_hash
-    })
+    git_token = data.get("git_token")
 
  # Вызов parser.py
-    return await parse_news(api_id, api_hash)
+    return await parse_news(api_id, api_hash, git_token)
 
