@@ -190,7 +190,3 @@ async def parse_news(api_id, api_hash, git_token):
             logging.error("❌ Ошибка при сохранении данных на GitHub")
     else:
         logging.info("ℹ️ Новых постов не найдено, обновление файлов не требуется")
-
-
-
-
