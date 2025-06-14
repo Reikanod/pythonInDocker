@@ -126,8 +126,10 @@ async def parse_news(api_id, api_hash, git_token):
             logging.error(f"[{channel}] Ошибка при получении entity: {e}")
             continue
 
-        last_id_str = last_posts.get(channel)
-        last_id = int(last_id_str) if last_id_str and last_id_str.isdigit() else 0
+
+        last_id_raw = last_posts.get(channel)
+        last_id_str = str(last_id_raw) if last_id_raw else ""
+        last_id = int(last_id_str) if last_id_str.isdigit() else 0
         new_messages = []
 
         try:
