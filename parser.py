@@ -18,7 +18,10 @@ GIT_PARSED_POSTS = "https://api.github.com/repos/Reikanod/pythonInDocker/content
 CHANNELS = [
     'spletnicca', 'skosoi', "spletnicca", "skosoi", "MediaKiller2021", "nabludatels", "first_political", "bankrollo",
     "banksta", "ZE_kartel", "Taynaya_kantselyariya", "ZeRada1", "ASupersharij", "infantmilitario", "legitimniy",
-    "rezident_ua", "the_military_analytics"
+    "rezident_ua", "the_military_analytics", "ejdailyru", "vchkogpu_ru", "boris_rozhin", "dimsmirnov175",
+    "SergeyKolyasnikov", "rlz_the_kraken", "opersvodki", "russicaRU", "politnewstg", "Sandymustache",
+    "mig41", "vysokygovorit", "crimsondigest", "dossiercenter", "underside_org", "maester", "stalin_gulag",
+    "strelkovii", ""
 ]
 
 # Получает весь файл last_posts.json, в котором хранятся названия каналов и message_id последнего спарсенного поста
