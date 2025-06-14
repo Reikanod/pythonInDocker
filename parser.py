@@ -132,6 +132,7 @@ async def parse_news(api_id, api_hash, git_token):
         last_id = int(last_id_str) if last_id_str.isdigit() else 0
         new_messages = []
 
+
         try:
             async for message in client.iter_messages(entity, limit=50):
                 if message.id <= last_id:
