@@ -21,6 +21,9 @@ async def get_news(request: Request):
     api_hash = data.get("api_hash")
     git_token = data.get("git_token")
 
- # Вызов parser.py
-    return await parse_news(api_id, api_hash, git_token)
-
+    try:
+        result = await parse_news(api_id, api_hash, git_token)
+        return result  # Теперь это dict, который можно вернуть
+    except Exception as e:
+        logging.error(f"Ошибка в get_news: {e}")
+        return {"status": "error", "message": str(e)}
