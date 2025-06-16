@@ -1,10 +1,16 @@
-import os
 import json
 import base64
 import asyncio
 import logging
-from telethon import TelegramClient
 import requests
+import mimetypes
+import os
+import tempfile
+
+from telethon.sync import TelegramClient
+from telethon.tl.functions.messages import GetMessagesRequest
+from telethon.tl.types import InputPeerChannel, InputMessageID
+from googleapiclient.http import MediaFileUpload
 
 # Логирование в stdout (Railway автоматически видит stdout и stderr)
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -13,6 +19,10 @@ logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 GIT_LAST_POSTS = "https://api.github.com/repos/Reikanod/pythonInDocker/contents/last_posts.json"
 GIT_PARSED_POSTS = "https://api.github.com/repos/Reikanod/pythonInDocker/contents/parsed_posts.json"
 
+# Ограничение на размер скачиваемого файла (МБ)
+MAX_FILE_SIZE_MB = 50
+
+# Каналы
 CHANNELS = list(set([
     'spletnicca', 'skosoi', "MediaKiller2021", "nabludatels", "first_political", "bankrollo",
     "banksta", "ZE_kartel", "Taynaya_kantselyariya", "ZeRada1", "ASupersharij", "infantmilitario", "legitimniy",
@@ -94,9 +104,78 @@ def get_parsed_posts_from_github(git_token):
 def update_parsed_posts_on_github(data_dict, git_token):
     return github_update_file(GIT_PARSED_POSTS, data_dict, git_token, "Обновление parsed_posts.json")
 
+# --- Функция скачивания и сохранения медиафайлов в Google Drive ---
+
+async def download_and_upload_media(tg_client, drive_service, channel_username: str, post_id: int):
+    parent_folder_id = "14IpT0Jjl78wT9mzyQIT7AKrd-ACHc0wu"
+
+    try:
+        channel = await tg_client.get_entity(channel_username)
+        msg = await tg_client.get_messages(channel, ids=post_id)
+        if not msg or not msg.media:
+            logging.info(f"[{channel_username}][{post_id}] Медиа не найдено.")
+            return
+    except Exception as e:
+        logging.error(f"[{channel_username}][{post_id}] Ошибка при получении сообщения: {e}")
+        return
+
+    media_items = []
+
+    if msg.photo:
+        media_items.append(msg.photo)
+    if msg.document:
+        media_items.append(msg.document)
+    if msg.video:
+        media_items.append(msg.video)
+
+    if not media_items:
+        logging.info(f"[{channel_username}][{post_id}] Медиа элементов нет.")
+        return
+
+    index = 1
+    for media in media_items:
+        file_name = f"{channel_username}_{post_id}_{index}"
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            try:
+                await tg_client.download_media(media, file=temp_file.name)
+                temp_file.flush()
+                file_path = temp_file.name
+
+                file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+                if file_size_mb > MAX_FILE_SIZE_MB:
+                    logging.warning(f"[{channel_username}][{post_id}] Пропущен: {file_name} ({file_size_mb:.2f} МБ)")
+                    os.remove(file_path)
+                    index += 1
+                    continue
+
+                mime_type, _ = mimetypes.guess_type(file_path)
+                ext = os.path.splitext(file_path)[1].lstrip(".")
+                drive_file_name = f"{channel_username}_{post_id}_{index}.{ext or 'bin'}"
+
+                file_metadata = {
+                    "name": drive_file_name,
+                    "parents": [parent_folder_id]
+                }
+                media_upload = MediaFileUpload(file_path, mimetype=mime_type or "application/octet-stream",
+                                               resumable=True)
+                try:
+                    uploaded = drive_service.files().create(
+                        body=file_metadata,
+                        media_body=media_upload,
+                        fields="id"
+                    ).execute()
+                    logging.info(f"Загружено: {drive_file_name} (ID: {uploaded['id']})")
+                except Exception as e:
+                    logging.error(f"Ошибка загрузки в Google Drive: {e}")
+
+                index += 1
+            finally:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+
 # --- Парсер новостей ---
 
-async def parse_news(api_id, api_hash, git_token):
+async def parse_news(api_id, api_hash, git_token, drive_service):
     session_file = "session.session"
     if not os.path.exists(session_file):
         raise Exception(f"Файл сессии {session_file} не найден!")
@@ -126,53 +205,31 @@ async def parse_news(api_id, api_hash, git_token):
             logging.error(f"[{channel}] Ошибка при получении entity: {e}")
             continue
 
-
         last_id_raw = last_posts.get(channel)
         last_id_str = str(last_id_raw) if last_id_raw else ""
         last_id = int(last_id_str) if last_id_str.isdigit() else 0
         new_messages = []
-
 
         try:
             async for message in client.iter_messages(entity, limit=50):
                 if message.id <= last_id:
                     logging.info(f"[{channel}] Достигнут последний известный ID {last_id}. Прерываю.")
                     break
-
                 new_messages.append(message)
 
             if new_messages:
-                # Сохраняем самый новый ID
                 last_posts[channel] = str(new_messages[0].id)
                 new_posts_found = True
 
-                # Обновляем parsed_posts для каждого нового сообщения
                 if channel not in parsed_posts:
                     parsed_posts[channel] = {}
 
-                for msg in reversed(new_messages):  # от старого к новому для логики
+                for msg in reversed(new_messages):
                     content_text = msg.text or ""
-                    media_links = []
 
-                    if msg.media:
-                        # Собираем ссылки на медиа (картинки, видео)
-                        try:
-                            if hasattr(msg.media, 'photo'):
-                                # Получить прямую ссылку на фото (пример через client.download_media)
-                                # Но для GitHub, скорее всего, нужно просто URL
-                                # Telegram API не даёт прямые ссылки, нужна загрузка или прокси
-                                # Пока сохраняем placeholder
-                                media_links.append("[photo]")
-                            elif hasattr(msg.media, 'document'):
-                                media_links.append("[document]")
-                        except Exception as me:
-                            logging.warning(f"[{channel}][msg {msg.id}] Ошибка получения медиа ссылок: {me}")
+                    await download_and_upload_media(client, drive_service, channel, msg.id)
 
-                    # Сохраняем по ID сообщения
-                    parsed_posts[channel][str(msg.id)] = {
-                        "content": content_text,
-                        "media_links": media_links
-                    }
+                    parsed_posts[channel][str(msg.id)] = content_text
 
                 logging.info(f"[{channel}] Добавлено/обновлено {len(new_messages)} новых постов в parsed_posts.")
 
@@ -194,4 +251,5 @@ async def parse_news(api_id, api_hash, git_token):
     else:
         logging.info("ℹ️ Новых постов не найдено, обновление файлов не требуется")
 
+    await client.disconnect()
     return {"status": "success", "message": "Новости обработаны"}

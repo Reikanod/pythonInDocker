@@ -20,9 +20,10 @@ async def get_news(request: Request):
     api_id = data.get("api_id")
     api_hash = data.get("api_hash")
     git_token = data.get("git_token")
+    drive_service = data.get("drive_service")
 
     try:
-        result = await parse_news(api_id, api_hash, git_token)
+        result = await parse_news(api_id, api_hash, git_token, drive_service)
         return result  # Теперь это dict, который можно вернуть
     except Exception as e:
         logging.error(f"Ошибка в get_news: {e}")

@@ -1,5 +1,6 @@
-
 fastapi
 uvicorn
 telethon
 requests
+google-api-python-client
+google-auth
