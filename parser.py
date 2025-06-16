@@ -199,10 +199,7 @@ async def parse_news(api_id, api_hash, git_token, drive_service):
         logging.warning("last_posts пустой или поврежден, инициализируем пустым словарем")
         last_posts = {}
 
-    parsed_posts = get_parsed_posts_from_github(git_token)
-    if not isinstance(parsed_posts, dict):
-        logging.warning("parsed_posts пустой или поврежден, инициализируем пустым словарем")
-        parsed_posts = {}
+    parsed_posts = {}
 
     new_posts_found = False
 
