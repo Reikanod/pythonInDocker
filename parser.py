@@ -6,7 +6,10 @@ import requests
 import mimetypes
 import os
 import tempfile
+import json
 
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
 from telethon.sync import TelegramClient
 from telethon.tl.functions.messages import GetMessagesRequest
 from telethon.tl.types import InputPeerChannel, InputMessageID
@@ -104,6 +107,12 @@ def get_parsed_posts_from_github(git_token):
 def update_parsed_posts_on_github(data_dict, git_token):
     return github_update_file(GIT_PARSED_POSTS, data_dict, git_token, "Обновление parsed_posts.json")
 
+# --- Вспомогательная функция создания файла, необходимого для регистрации в гугл доках ---
+def create_drive_service_from_json_str(json_str: str):
+    creds_dict = json.loads(json_str)
+    creds = Credentials.from_service_account_info(creds_dict, scopes=['https://www.googleapis.com/auth/drive'])
+    return build('drive', 'v3', credentials=creds)
+
 # --- Функция скачивания и сохранения медиафайлов в Google Drive ---
 
 async def download_and_upload_media(tg_client, drive_service, channel_username: str, post_id: int):
@@ -182,6 +191,8 @@ async def parse_news(api_id, api_hash, git_token, drive_service):
 
     client = TelegramClient("session", api_id, api_hash, system_version='4.16.30-vxCUSTOM')
     await client.start()
+
+    drive_service = create_drive_service_from_json_str(drive_service)
 
     last_posts = get_last_posts_from_github(git_token)
     if not isinstance(last_posts, dict):
